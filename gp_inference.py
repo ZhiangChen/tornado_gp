@@ -13,8 +13,13 @@ import matplotlib.pyplot as plt
 import cv2
 
 # load train data
-assert os.path.isfile('train_data.npy')
-train_data = np.load('train_data.npy')
+infer = False
+if infer:
+    train_file = 'train_data.npy'
+else:
+    train_file = 'train_data_true.npy'
+assert os.path.isfile(train_file)
+train_data = np.load(train_file)
 train_x = np.array(np.nonzero(train_data)).transpose()
 train_y = np.array([train_data[tuple(i)] for i in train_x])
 
@@ -28,7 +33,6 @@ class ExactGPModel(gpytorch.models.ExactGP):
         super(ExactGPModel, self).__init__(train_x, train_y, likelihood)
         self.mean_module = gpytorch.means.ConstantMean()
         self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel())
-
     def forward(self, x):
         mean_x = self.mean_module(x)
         covar_x = self.covar_module(x)
@@ -76,10 +80,11 @@ test_x = test_x.cpu().numpy()
 
 result_grid = np.zeros_like(test_data, dtype=float)
 #result_grid = np.zeros_like(test_data)
+model_mean = model.state_dict()['mean_module.constant'].cpu().numpy()[0]
 for i, (u,v) in enumerate(test_x):
     if mean[i] > 5:
         result_grid[int(u), int(v)] = 5
-    elif mean[i] < 1.58:
+    elif mean[i] < model_mean + 0.05:
         result_grid[int(u), int(v)] = 1
     else:
         result_grid[int(u), int(v)] = mean[i]
@@ -114,4 +119,7 @@ results = np.zeros((200, 200, 3), dtype=float)  # mean, variance, precision
 results[:,:,0] = result_grid
 results[:,:,1] = var_grid
 results[:,:,2] = prec_grid
-np.save('gp_inference_mean_var_prec.npy', results)
+if infer:
+    np.save('gp_inference_mean_var_prec.npy', results)
+else:
+    np.save('gp_inference_mean_var_prec_true.npy', results)

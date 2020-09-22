@@ -1,3 +1,4 @@
+*.npy
 *.tif
 
 # Byte-compiled / optimized / DLL files

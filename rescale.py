@@ -10,6 +10,7 @@ import gdal
 import cv2
 import numpy as np
 import PIL.Image
+import os
 PIL.Image.MAX_IMAGE_PIXELS = 3000000000
 
 class RRC(object):
@@ -87,26 +88,26 @@ class RRC(object):
         """
         return resize_tif_detect, resize_tif_clas
 
+    def read_sample_npy(self, sample_file):
+        assert os.path.isfile(sample_file)
+        samples = np.load(sample_file)
+        return samples
 
-    def recover_detect_img_size(self, image_file):
-        im = PIL.Image.open(image_file)
-        recoverd_im = im.resize((self.XSize_detect, self.YSize_detect))
+
+    def recover_img_size_clas_format(self, image_nd):
+        im = PIL.Image.fromarray(image_nd)
+        recoverd_im = im.resize((self.XSize_clas, self.YSize_clas), resample=PIL.Image.BICUBIC)
         nd_img = np.array(recoverd_im)
+        nd_img[nd_img<0] = 0
         return nd_img
 
-    def recover_clas_img_size(self, image_file):
-        im = PIL.Image.open(image_file)
-        recoverd_im = im.resize((self.XSize_clas, self.YSize_clas))
-        nd_img = np.array(recoverd_im)
-        return nd_img
 
-
-    def save_tiff_as_class(self, ndarray):
+    def save_tiff_as_class_format(self, ndarray, save_file):
         driver = gdal.GetDriverByName('GTiff')
         y, x = ndarray.shape
 
         dataset = driver.Create(
-            "saved.tif",
+            save_file,
             x,
             y,
             1,
@@ -118,16 +119,40 @@ class RRC(object):
         dataset.SetGeoTransform(gt)
         dataset.SetMetadata(md)
         dataset.SetProjection(pj)
-        dataset.GetRasterBand(1).WriteArray(ndarray)
+        dataset.GetRasterBand(1).WriteArray(ndarray.astype(np.uint8))
         dataset.FlushCache()
 
 
+
+
 if __name__ == '__main__':
+    """
     tif_detect = 'heatmap_detect_102_103_mult_aug.tif'
     tif_clas = 'heatmap_clas_102_103.tif'
     rrc = RRC(tif_detect, tif_clas)
-    #rrc.readTiff(tif_detect, tif_clas)
+    rrc.readTiff(tif_detect, tif_clas)
+    #resized_tif_detect, resized_tif_clas = rrc.get_resized_mask()
+    #cv2.imwrite('resized_img_detect.png', resized_tif_detect)
+    #cv2.imwrite('resized_img_clas.png', resized_tif_clas)
+    results = rrc.read_sample_npy('resized_result_mean_var_prec.npy')
+    mean = results[:, :, 0]
+    var = results[:, :, 1]
+    prec = results[:, :, 2]
+    resized_mean = rrc.recover_img_size_clas_format(mean)
+    rrc.save_tiff_as_class_format(resized_mean, 'mean.tif')
+    """
+    tif_detect = 'heatmap_detect_102_103_mult_true.tif'
+    tif_clas = 'heatmap_clas_102_103_true.tif'
+    rrc = RRC(tif_detect, tif_clas)
+    rrc.readTiff(tif_detect, tif_clas)
     resized_tif_detect, resized_tif_clas = rrc.get_resized_mask()
-    cv2.imwrite('resized_img_detect.png', resized_tif_detect)
-    cv2.imwrite('resized_img_clas.png', resized_tif_clas)
-    #recovered_img = rrc.recover_img_size('resized_heatmap.png')
+    cv2.imwrite('resized_img_detect_true.png', resized_tif_detect)
+    cv2.imwrite('resized_img_clas_trueDe.png', resized_tif_clas)
+    # results = rrc.read_sample_npy('resized_result_mean_var_prec.npy')
+    # mean = results[:, :, 0]
+    # var = results[:, :, 1]
+    # prec = results[:, :, 2]
+    # resized_mean = rrc.recover_img_size_clas_format(mean)
+    # rrc.save_tiff_as_class_format(resized_mean, 'mean.tif')
+
+

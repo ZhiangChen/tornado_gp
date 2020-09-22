@@ -10,8 +10,13 @@ import gpytorch
 import os
 
 # load train data
-assert os.path.isfile('train_data.npy')
-train_data = np.load('train_data.npy')
+infer = False
+if infer:
+    train_file = 'train_data.npy'
+else:
+    train_file = 'train_data_true.npy'
+assert os.path.isfile(train_file)
+train_data = np.load(train_file)
 train_x = np.array(np.nonzero(train_data)).transpose()
 train_y = np.array([train_data[tuple(i)] for i in train_x])
 
