@@ -101,7 +101,7 @@ class SP(object):
             for j in range(20):  # grid number along V
                 clas_tile = clas_grid[i * step:i * step + step, j * step:j * step + step]
                 if clas_tile.min() > 0:
-                    sampling_nm = 40  # sampling number
+                    sampling_nm = 30  # sampling number
                     clas_u = np.random.rand(sampling_nm)  # the sample should at least reach the threshold
                     sample_clas_u = (clas_u * step).astype(int)
                     clas_v = np.random.rand(sampling_nm)  # the sample threshold
@@ -255,42 +255,66 @@ class SP(object):
 
 
 if __name__ == '__main__':
-    infer = False
-    if infer:
-        sp = SP()
-        detect_file = 'resized_img_detect.png'
-        clas_file = 'resized_img_clas.png'
-        mask_file = 'resized_mask.png'
-        sp.readOriginal(detect_file, clas_file, mask_file)
-        grid = sp.grid_images(200)
-        sp.sample()
-        # sample_file = './gp_inference_mean_var_prec.npy'
-        # results = sp.read_sample_npy(sample_file)
-        # mean = results[:, :, 0]
-        # var = results[:, :, 1]
-        # prec = results[:, :, 2]
-        # resized_mean = sp.recover(mean)
-        # resized_var = sp.recover(var)
-        # resized_prec = sp.recover(prec)
-        # resized_result = np.stack((resized_mean, resized_var, resized_prec), axis=2)
-        # np.save('resized_result_mean_var_prec.npy', resized_result)
+    recover = True  # True for upsampling; False for downsampling
+    infer = False  # True for neural network output; False for neural network ground truth
+    if recover:
+        if infer:
+            sp = SP()
+            detect_file = 'resized_img_detect.png'
+            clas_file = 'resized_img_clas.png'
+            mask_file = 'resized_mask.png'
+            sp.readOriginal(detect_file, clas_file, mask_file)
+            grid = sp.grid_images(200)
+            result = sp.read_sample_npy('training_result.npy')
+            resized_mean = sp.recover(result)
+            np.save('resized_result_mean_training.npy', resized_mean)
+        else:
+            sp = SP()
+            detect_file = 'resized_img_detect_true.png'
+            clas_file = 'resized_img_clas_true.png'
+            mask_file = 'resized_mask_true.png'
+            sp.readOriginal(detect_file, clas_file, mask_file)
+            grid = sp.grid_images(200)
+            result = sp.read_sample_npy('groundtruth_result.npy')
+            resized_mean = sp.recover(result)
+            np.save('resized_result_mean_groundtruth.npy', resized_mean)
+
     else:
-        sp = SP()
-        detect_file = 'resized_img_detect_true.png'
-        clas_file = 'resized_img_clas_true.png'
-        mask_file = 'resized_mask_true.png'
-        sp.readOriginal(detect_file, clas_file, mask_file)
-        grid = sp.grid_images(200)
-        clas_sample = cv2.imread('resampled_classification.png', cv2.IMREAD_GRAYSCALE)
-        sp.duplicate_sample(clas_sample)
-        # sample_file = './gp_inference_mean_var_prec.npy'
-        # results = sp.read_sample_npy(sample_file)
-        # mean = results[:, :, 0]
-        # var = results[:, :, 1]
-        # prec = results[:, :, 2]
-        # resized_mean = sp.recover(mean)
-        # resized_var = sp.recover(var)
-        # resized_prec = sp.recover(prec)
-        # resized_result = np.stack((resized_mean, resized_var, resized_prec), axis=2)
-        # np.save('resized_result_mean_var_prec.npy', resized_result)
+        if infer:
+            sp = SP()
+            detect_file = 'resized_img_detect.png'
+            clas_file = 'resized_img_clas.png'
+            mask_file = 'resized_mask.png'
+            sp.readOriginal(detect_file, clas_file, mask_file)
+            grid = sp.grid_images(200)
+            sp.sample()
+            # sample_file = './gp_inference_mean_var_prec.npy'
+            # results = sp.read_sample_npy(sample_file)
+            # mean = results[:, :, 0]
+            # var = results[:, :, 1]
+            # prec = results[:, :, 2]
+            # resized_mean = sp.recover(mean)
+            # resized_var = sp.recover(var)
+            # resized_prec = sp.recover(prec)
+            # resized_result = np.stack((resized_mean, resized_var, resized_prec), axis=2)
+            # np.save('resized_result_mean_var_prec.npy', resized_result)
+        else:
+            sp = SP()
+            detect_file = 'resized_img_detect_true.png'
+            clas_file = 'resized_img_clas_true.png'
+            mask_file = 'resized_mask_true.png'
+            sp.readOriginal(detect_file, clas_file, mask_file)
+            grid = sp.grid_images(200)
+            clas_sample = cv2.imread('resampled_classification.png', cv2.IMREAD_GRAYSCALE)
+            sp.duplicate_sample(clas_sample)
+            # sample_file = './gp_inference_mean_var_prec.npy'
+            # results = sp.read_sample_npy(sample_file)
+            # mean = results[:, :, 0]
+            # var = results[:, :, 1]
+            # prec = results[:, :, 2]
+            # resized_mean = sp.recover(mean)
+            # resized_var = sp.recover(var)
+            # resized_prec = sp.recover(prec)
+            # resized_result = np.stack((resized_mean, resized_var, resized_prec), axis=2)
+            # np.save('resized_result_mean_var_prec.npy', resized_result)
 

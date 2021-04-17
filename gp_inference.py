@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import cv2
 
 # load train data
-infer = False
+infer = True
 if infer:
     train_file = 'train_data.npy'
 else:

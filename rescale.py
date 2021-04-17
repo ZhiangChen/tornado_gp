@@ -145,14 +145,17 @@ if __name__ == '__main__':
     tif_clas = 'heatmap_clas_102_103_true.tif'
     rrc = RRC(tif_detect, tif_clas)
     rrc.readTiff(tif_detect, tif_clas)
-    resized_tif_detect, resized_tif_clas = rrc.get_resized_mask()
-    cv2.imwrite('resized_img_detect_true.png', resized_tif_detect)
-    cv2.imwrite('resized_img_clas_trueDe.png', resized_tif_clas)
-    # results = rrc.read_sample_npy('resized_result_mean_var_prec.npy')
+    #resized_tif_detect, resized_tif_clas = rrc.get_resized_mask()
+    #cv2.imwrite('resized_img_detect_true.png', resized_tif_detect)
+    #cv2.imwrite('resized_img_clas_trueDe.png', resized_tif_clas)
+    mean = rrc.read_sample_npy('resized_result_mean_training.npy')
     # mean = results[:, :, 0]
     # var = results[:, :, 1]
     # prec = results[:, :, 2]
-    # resized_mean = rrc.recover_img_size_clas_format(mean)
-    # rrc.save_tiff_as_class_format(resized_mean, 'mean.tif')
+    resized_mean = rrc.recover_img_size_clas_format(mean)
+    rrc.save_tiff_as_class_format(resized_mean, 'training_mean.tif')
+    mean = rrc.read_sample_npy('resized_result_mean_groundtruth.npy')
+    resized_mean = rrc.recover_img_size_clas_format(mean)
+    rrc.save_tiff_as_class_format(resized_mean, 'groundtruth_mean.tif')
 
 
